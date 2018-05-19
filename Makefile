@@ -1,5 +1,6 @@
 SLUG = Roli
 VERSION = 0.0.1
+RACK_DIR ?= ../..
 
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS +=

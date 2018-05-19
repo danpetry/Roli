@@ -4,12 +4,13 @@
 using namespace rack;
 
 
-extern Plugin *plugin;
+//extern Plugin *plugin;
 
 ////////////////////
 // module widgets
 ////////////////////
 
-struct MyModuleWidget : ModuleWidget {
-	MyModuleWidget();
+struct QuadMidiToCVWidget : ModuleWidget {
+	QuadMidiToCVWidget();
+	void step() override;
 };
