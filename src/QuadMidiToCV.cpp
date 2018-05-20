@@ -7,8 +7,10 @@
 
 struct MidiKey {
 	int pitch = 60;
-	int at = 0; // aftertouch
-	int vel = 0; // velocity
+	int pressure = 0; // channel pressure
+	int onVel = 0; // note on velocity
+	int offVel = 0; //note off velocity
+	int yAxis = 0; // y axis - up and down the key
 	bool gate = false;
 };
 
@@ -21,11 +23,13 @@ struct QuadMIDIToCVInterface : MidiIO, Module {
 		NUM_INPUTS
 	};
 	enum OutputIds {
-		PITCH_OUTPUT = 0,
+		PITCH_OUTPUT = 0, // Pitch bend is output as part of 1V/oct output TODO - is this the best way?
 		GATE_OUTPUT = 4,
-		VELOCITY_OUTPUT = 8,
-		AT_OUTPUT = 12,
-		NUM_OUTPUTS = 16
+		ON_VELOCITY_OUTPUT = 8,
+		OFF_VELOCITY_OUTPUT = 8,
+		PRESSURE_OUTPUT = 12,
+		Y_OUTPUT = 16,
+		NUM_OUTPUTS = 24 // 4 channels x 6 outputs TODO - expand polyphony from 4 to 8
 	};
 	enum LightIds {
 		RESET_LIGHT,
@@ -85,8 +89,10 @@ void QuadMIDIToCVInterface::resetMidi() {
 	for (int i = 0; i < 4; i++) {
 		outputs[GATE_OUTPUT + i].value = 0.0;
 		activeKeys[i].gate = false;
-		activeKeys[i].vel = 0;
-		activeKeys[i].at = 0;
+		activeKeys[i].onVel = 0;
+		activeKeys[i].offVel = 0;
+		activeKeys[i].pressure = 0;
+		activeKeys[i].yAxis = 0;
 	}
 
 	open.clear();
@@ -112,11 +118,13 @@ void QuadMIDIToCVInterface::step() {
 	}
 
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++) { //TODO - expand polyphony from 4 to 8
 		outputs[GATE_OUTPUT + i].value = activeKeys[i].gate ? 10.0 : 0;
 		outputs[PITCH_OUTPUT + i].value = (activeKeys[i].pitch - 60) / 12.0;
-		outputs[VELOCITY_OUTPUT + i].value = activeKeys[i].vel / 127.0 * 10.0;
-		outputs[AT_OUTPUT + i].value = activeKeys[i].at / 127.0 * 10.0;
+		outputs[ON_VELOCITY_OUTPUT + i].value = activeKeys[i].onVel / 127.0 * 10.0;
+		outputs[OFF_VELOCITY_OUTPUT + i].value = activeKeys[i].offVel / 127.0 * 10.0;
+		outputs[PRESSURE_OUTPUT + i].value = activeKeys[i].pressure / 127.0 * 10.0;
+		outputs[Y_OUTPUT + i].value = activeKeys[i].yAxis / 127.0 * 10.0;
 	}
 
 	if (resetTrigger.process(params[RESET_PARAM].value)) {
