@@ -20,3 +20,4 @@ DISTRIBUTABLES += $(wildcard LICENSE*) res
 
 # Include the VCV plugin Makefile framework
 include ../../plugin.mk
+include test.mk
