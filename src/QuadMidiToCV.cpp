@@ -4,33 +4,14 @@
 #include "Roli.hpp"
 #include "MidiIO.hpp"
 #include "dsp/digital.hpp"
+#include "WidgetComposite.h"
 #include "MidiProcessor.h"
 
 
 struct QuadMIDIToCVInterface : MidiIO, Module {
 
+	QuadMIDIToCVInterface();
     
-	MidiProcessor<WidgetComposite> midiproc;
-
-	bool pedal = false;
-
-	int mode = REASSIGN;
-
-	int getMode() const;
-
-	void setMode(int mode);
-
-	std::list<int> open;
-
-	SchmittTrigger resetTrigger;
-
-	QuadMIDIToCVInterface() : MidiIO(), Module(midiproc.NUM_PARAMS, midiproc.NUM_INPUTS, midiproc.NUM_OUTPUTS, midiproc.NUM_LIGHTS) {
-
-	}
-
-	~QuadMIDIToCVInterface() {
-	};
-
 	void step() override;
 
 	json_t *toJson() override {
@@ -48,23 +29,42 @@ struct QuadMIDIToCVInterface : MidiIO, Module {
 	}
 
 	void resetMidi() override;
+	MidiProcessor<WidgetComposite> midiproc;
+
+
+
+	int getMode() const;
+
+	void setMode(int mode);
+
+
+	SchmittTrigger resetTrigger;
+
+
+	~QuadMIDIToCVInterface() {
+	};
+
 
 };
 
+QuadMIDIToCVInterface::QuadMIDIToCVInterface() : MidiIO(), Module(midiproc.NUM_PARAMS, midiproc.NUM_INPUTS, midiproc.NUM_OUTPUTS, midiproc.NUM_LIGHTS) , midiproc(this){
+
+}
 
 void QuadMIDIToCVInterface::step()
 {
     midiproc.step();
+    lights[midiproc.RESET_LIGHT].value -= lights[midiproc.RESET_LIGHT].value / 0.55 / engineGetSampleRate(); // fade out light
 }
 
 
 int QuadMIDIToCVInterface::getMode() const {
-	return mode;
+	return midiproc.mode;
 }
 
 void QuadMIDIToCVInterface::setMode(int mode) {
 	resetMidi();
-	QuadMIDIToCVInterface::mode = mode;
+	midiproc.mode = mode;
 }
 
 struct ModeItem : MenuItem {
