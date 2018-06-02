@@ -1,24 +1,63 @@
 # makefile fragment to make test.exe, the unit test program.
+#include "../../arch.mk"
+include $(RACK_DIR)/arch.mk
+
 TEST_SOURCES = $(wildcard test/*.cpp)
+
 ## This is a list of full paths to the .o files we want to build
 TEST_OBJECTS = $(patsubst %, build_test/%.o, $(TEST_SOURCES))
-
-CXXFLAGS += -fPIC
 
 build_test/%.cpp.o: %.cpp
 	mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-# this probably goes away with 0.6.1
-# but for now our execs need to dynlink to pthread
-mytest : LDFLAGS += -lpthread
+build_test/%.c.o: %.c
+	mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-test : mytest
+# Always define _PERF for the perf tests.
+perf.exe : PERFFLAG = -D _PERF
+
+# Turn off asserts for perf, unless user overrides on command line
+perf.exe : FLAGS += $(ASSERTOFF)
+
+FLAGS += $(PERFFLAG)
+
+ifeq ($(ARCH), win)
+	# don't need these yet
+	#  -lcomdlg32 -lole32 -ldsound -lwinmm
+test.exe : LDFLAGS = -static \
+		-mwindows \
+		-lpthread -lopengl32 -lgdi32 -lws2_32
+endif
+
+ifeq ($(ARCH), lin)
+test.exe : LDFLAGS = -rdynamic \
+		-lpthread -lGL -ldl \
+		$(shell pkg-config --libs gtk+-2.0)
+endif
+
+ifeq ($(ARCH), mac)
+test.exe : LDFLAGS = -stdlib=libc++ -lpthread -ldl \
+		-framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo
+endif
+
+test : test.exe
+	./test.exe
+
+## Note that perf and test targets both used build_test for object files,
+## So you need to be careful to delete/clean when switching between the two.
+## Consider fixing this in the future.
+perf : perf.exe
 
 ## cleantest will clean out all the test and perf build products
 cleantest :
 	rm -rfv build_test
-	rm -fv mytest
+	rm -fv test.exe
+	rm -fv perf.exe
 
-mytest : $(TEST_OBJECTS)
+test.exe : $(TEST_OBJECTS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
+
+perf.exe : $(TEST_OBJECTS)
 	$(CXX) -o $@ $^ $(LDFLAGS)
