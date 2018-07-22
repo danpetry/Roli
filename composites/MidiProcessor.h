@@ -24,9 +24,13 @@ template <class TBase>
 class MidiProcessor : public TBase
 {
 public:
+	MidiProcessor(struct Module *module) : TBase(module)
+	{
+	}
 	MidiProcessor(): TBase()
 	{
 	}
+	
     // Define all the enums here. This will let the tests and the widget access them.
 	enum ParamIds {
 		RESET_PARAM,
@@ -62,34 +66,35 @@ public:
         void resetMidi(); 
 	bool pedal = false;
 	int mode = REASSIGN;
-}
+	SchmittTrigger resetTrigger;
+};
 
 template <class TBase>
 void MidiProcessor<TBase>::step() {
-	if (isPortOpen()) {
+	if (MidiIO::isPortOpen()) {
 		std::vector<unsigned char> message;
 		int msgsProcessed = 0;
 
 		// midiIn->getMessage returns empty vector if there are no messages in the queue
 		// NOTE: For the quadmidi we will process max 4 midi messages per step to avoid
 		// problems with parallel input.
-		getMessage(&message);
+		MidiIO::getMessage(&message);
 		while (msgsProcessed < 4 && message.size() > 0) {
 			processMidi(message);
-			getMessage(&message);
+			MidiIO::getMessage(&message);
 			msgsProcessed++;
 		}
 	}
 
 
 	for (int i = 0; i < 4; i++) {
-		outputs[GATE_OUTPUT + i].value = activeKeys[i].gate ? 10.0 : 0;
-		outputs[PITCH_OUTPUT + i].value = (activeKeys[i].pitch - 60) / 12.0;
-		outputs[VELOCITY_OUTPUT + i].value = activeKeys[i].vel / 127.0 * 10.0;
-		outputs[AT_OUTPUT + i].value = activeKeys[i].at / 127.0 * 10.0;
+		TBase::outputs[GATE_OUTPUT + i].value = activeKeys[i].gate ? 10.0 : 0;
+		TBase::outputs[PITCH_OUTPUT + i].value = (activeKeys[i].pitch - 60) / 12.0;
+		TBase::outputs[VELOCITY_OUTPUT + i].value = activeKeys[i].vel / 127.0 * 10.0;
+		TBase::outputs[AT_OUTPUT + i].value = activeKeys[i].at / 127.0 * 10.0;
 	}
 
-	if (resetTrigger.process(params[RESET_PARAM].value)) {
+	if (resetTrigger.process(TBase::params[RESET_PARAM].value)) {
 		resetMidi();
 		return;
 	}
@@ -213,7 +218,7 @@ template <class TBase>
 void MidiProcessor<TBase>::resetMidi() {
 
 	for (int i = 0; i < 4; i++) {
-		outputs[GATE_OUTPUT + i].value = 0.0;
+		TBase::outputs[GATE_OUTPUT + i].value = 0.0;
 		activeKeys[i].gate = false;
 		activeKeys[i].vel = 0;
 		activeKeys[i].at = 0;
@@ -222,5 +227,5 @@ void MidiProcessor<TBase>::resetMidi() {
 	open.clear();
 
 	pedal = false;
-	lights[RESET_LIGHT].value = 1.0;
+	TBase::lights[RESET_LIGHT].value = 1.0;
 }

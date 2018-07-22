@@ -1,11 +1,12 @@
+#pragma once
 #include "rack.hpp"
 
 
 using namespace rack;
 
 
-//extern Plugin *plugin;
-
+extern Plugin *plugin;
+extern Model *modelQuadMidiModule;
 ////////////////////
 // module widgets
 ////////////////////

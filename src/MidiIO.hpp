@@ -1,3 +1,4 @@
+#pragma once
 #include <unordered_map>
 #include "rack.hpp"
 #include "rtmidi/RtMidi.h"

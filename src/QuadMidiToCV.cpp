@@ -38,7 +38,6 @@ struct QuadMIDIToCVInterface : MidiIO, Module {
 	void setMode(int mode);
 
 
-	SchmittTrigger resetTrigger;
 
 
 	~QuadMIDIToCVInterface() {
@@ -47,7 +46,8 @@ struct QuadMIDIToCVInterface : MidiIO, Module {
 
 };
 
-QuadMIDIToCVInterface::QuadMIDIToCVInterface() : MidiIO(), Module(midiproc.NUM_PARAMS, midiproc.NUM_INPUTS, midiproc.NUM_OUTPUTS, midiproc.NUM_LIGHTS) , midiproc(this){
+QuadMIDIToCVInterface::QuadMIDIToCVInterface() : MidiIO(), Module(midiproc.NUM_PARAMS, midiproc.NUM_INPUTS, midiproc.NUM_OUTPUTS, midiproc.NUM_LIGHTS),
+midiproc(this){
 
 }
 
@@ -65,7 +65,7 @@ int QuadMIDIToCVInterface::getMode() const {
 void QuadMIDIToCVInterface::setMode(int mode) {
 	resetMidi();
 	midiproc.mode = mode;
-}
+};
 
 struct ModeItem : MenuItem {
 	int mode;
@@ -129,9 +129,9 @@ QuadMidiToCVWidget::QuadMidiToCVWidget() {
 		yPos = labelHeight * 2;
 	}
 
-	addParam(createParam<LEDButton>(Vec(12 * 15, labelHeight), module, QuadMIDIToCVInterface::RESET_PARAM, 0.0, 1.0,
+	addParam(createParam<LEDButton>(Vec(12 * 15, labelHeight), module, module->midiproc.RESET_PARAM, 0.0, 1.0,
 									0.0));
-	addChild(createLight<SmallLight<RedLight>>(Vec(12 * 15 + 5, labelHeight + 5), module, QuadMIDIToCVInterface::RESET_LIGHT));
+	addChild(createLight<SmallLight<RedLight>>(Vec(12 * 15 + 5, labelHeight + 5), module, module->midiproc.RESET_LIGHT));
 	{
 		Label *label = new Label();
 		label->box.pos = Vec(margin, yPos);
@@ -223,3 +223,5 @@ void QuadMidiToCVWidget::step() {
 
 	ModuleWidget::step();
 }
+
+Model *modelQuadMidiModule = createModel<QuadMidiToCVWidget>("Roli", "QuadMIDIToCVInterface", "Quad MIDI-toCV Interface", MIDI_TAG, EXTERNAL_TAG, QUAD_TAG);
