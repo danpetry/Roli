@@ -14,7 +14,7 @@ struct MidiKey {
 	bool gate = false;
 };
 
-struct QuadMIDIToCVInterface : MidiIO, Module {
+struct SeaboardInterface : MidiIO, Module {
 	enum ParamIds {
 		RESET_PARAM,
 		NUM_PARAMS
@@ -55,11 +55,11 @@ struct QuadMIDIToCVInterface : MidiIO, Module {
 
 	SchmittTrigger resetTrigger;
 
-	QuadMIDIToCVInterface() : MidiIO(), Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
+	SeaboardInterface() : MidiIO(), Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS) {
 
 	}
 
-	~QuadMIDIToCVInterface() {
+	~SeaboardInterface() {
 	};
 
 	void step() override;
@@ -84,7 +84,7 @@ struct QuadMIDIToCVInterface : MidiIO, Module {
 
 };
 
-void QuadMIDIToCVInterface::resetMidi() {
+void SeaboardInterface::resetMidi() {
 
 	for (int i = 0; i < 4; i++) {
 		outputs[GATE_OUTPUT + i].value = 0.0;
@@ -101,7 +101,7 @@ void QuadMIDIToCVInterface::resetMidi() {
 	lights[RESET_LIGHT].value = 1.0;
 }
 
-void QuadMIDIToCVInterface::step() {
+void SeaboardInterface::step() {
 	if (isPortOpen()) {
 		std::vector<unsigned char> message;
 		int msgsProcessed = 0;
@@ -136,7 +136,7 @@ void QuadMIDIToCVInterface::step() {
 }
 
 
-void QuadMIDIToCVInterface::processMidi(std::vector<unsigned char> msg) {
+void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 	int channel = msg[0] & 0xf;
 	int status = (msg[0] >> 4) & 0xf;
 	int data1 = msg[1];
@@ -164,7 +164,7 @@ void QuadMIDIToCVInterface::processMidi(std::vector<unsigned char> msg) {
 		case 0xa: // channel aftertouch
 			for (int i = 0; i < 4; i++) {
 				if (activeKeys[i].pitch == data1) {
-					activeKeys[i].at = data2;
+					activeKeys[i].pressure = data2;
 				}
 			}
 			return;
@@ -192,7 +192,7 @@ void QuadMIDIToCVInterface::processMidi(std::vector<unsigned char> msg) {
 		for (int i = 0; i < 4; i++) {
 			if (activeKeys[i].pitch == data1) {
 				activeKeys[i].gate = false;
-				activeKeys[i].vel = data2;
+				activeKeys[i].onVel = data2; //TODO - include offVel - atm it should just be stuck at 0
 				if (std::find(open.begin(), open.end(), i) != open.end()) {
 					open.remove(i);
 				}
@@ -235,7 +235,7 @@ void QuadMIDIToCVInterface::processMidi(std::vector<unsigned char> msg) {
 
 	for (int i = 0; i < 4; i++) {
 		if (activeKeys[i].pitch == data1 && activeKeys[i].gate) {
-			activeKeys[i].vel = data2;
+			activeKeys[i].onVel = data2;
 			if (std::find(open.begin(), open.end(), i) != open.end())
 				open.remove(i);
 
@@ -246,21 +246,21 @@ void QuadMIDIToCVInterface::processMidi(std::vector<unsigned char> msg) {
 
 	activeKeys[next].gate = true;
 	activeKeys[next].pitch = data1;
-	activeKeys[next].vel = data2;
+	activeKeys[next].onVel = data2;
 }
 
-int QuadMIDIToCVInterface::getMode() const {
+int SeaboardInterface::getMode() const {
 	return mode;
 }
 
-void QuadMIDIToCVInterface::setMode(int mode) {
+void SeaboardInterface::setMode(int mode) {
 	resetMidi();
-	QuadMIDIToCVInterface::mode = mode;
+	SeaboardInterface::mode = mode;
 }
 
 struct ModeItem : MenuItem {
 	int mode;
-	QuadMIDIToCVInterface *module;
+	SeaboardInterface *module;
 
 	void onAction(EventAction &e) {
 		module->setMode(mode);
@@ -268,7 +268,7 @@ struct ModeItem : MenuItem {
 };
 
 struct ModeChoice : ChoiceButton {
-	QuadMIDIToCVInterface *module;
+	SeaboardInterface *module;
 	const std::vector<std::string> modeNames = {"ROTATE", "RESET", "REASSIGN"};
 
 
@@ -292,8 +292,8 @@ struct ModeChoice : ChoiceButton {
 };
 
 
-QuadMidiToCVWidget::QuadMidiToCVWidget() {
-	QuadMIDIToCVInterface *module = new QuadMIDIToCVInterface();
+SeaboardWidget::SeaboardWidget() {
+	SeaboardInterface *module = new SeaboardInterface();
 	setModule(module);
 	box.size = Vec(15 * 16, 380);
 
@@ -304,7 +304,7 @@ QuadMidiToCVWidget::QuadMidiToCVWidget() {
 	}
 
 	float margin = 5;
-	float labelHeight = 15;
+	float labelHeight = 12;
 	float yPos = margin;
 
 	addChild(createScrew<ScrewSilver>(Vec(15, 0)));
@@ -315,14 +315,14 @@ QuadMidiToCVWidget::QuadMidiToCVWidget() {
 	{
 		Label *label = new Label();
 		label->box.pos = Vec(box.size.x - margin - 12 * 15, margin);
-		label->text = "Quad MIDI to CV";
+		label->text = "Seaboard";
 		addChild(label);
 		yPos = labelHeight * 2;
 	}
 
-	addParam(createParam<LEDButton>(Vec(12 * 15, labelHeight), module, QuadMIDIToCVInterface::RESET_PARAM, 0.0, 1.0,
+	addParam(createParam<LEDButton>(Vec(12 * 15, labelHeight), module, SeaboardInterface::RESET_PARAM, 0.0, 1.0,
 									0.0));
-	addChild(createLight<SmallLight<RedLight>>(Vec(12 * 15 + 5, labelHeight + 5), module, QuadMIDIToCVInterface::RESET_LIGHT));
+	addChild(createLight<SmallLight<RedLight>>(Vec(12 * 15 + 5, labelHeight + 5), module, SeaboardInterface::RESET_LIGHT));
 	{
 		Label *label = new Label();
 		label->box.pos = Vec(margin, yPos);
@@ -335,7 +335,7 @@ QuadMidiToCVWidget::QuadMidiToCVWidget() {
 		midiChoice->box.pos = Vec(margin, yPos);
 		midiChoice->box.size.x = box.size.x - 10;
 		addChild(midiChoice);
-		yPos += midiChoice->box.size.y + margin;
+		yPos += midiChoice->box.size.y;
 	}
 
 	{
@@ -350,7 +350,7 @@ QuadMidiToCVWidget::QuadMidiToCVWidget() {
 		channelChoice->box.pos = Vec(margin, yPos);
 		channelChoice->box.size.x = box.size.x - 10;
 		addChild(channelChoice);
-		yPos += channelChoice->box.size.y + margin;
+		yPos += channelChoice->box.size.y;
 	}
 
 	{
@@ -365,7 +365,7 @@ QuadMidiToCVWidget::QuadMidiToCVWidget() {
 		modeChoice->box.pos = Vec(margin, yPos);
 		modeChoice->box.size.x = box.size.x - 10;
 		addChild(modeChoice);
-		yPos += modeChoice->box.size.y + margin + 15;
+		yPos += modeChoice->box.size.y;
 	}
 
 	{
@@ -392,10 +392,10 @@ QuadMidiToCVWidget::QuadMidiToCVWidget() {
 		label->text = "4";
 		addChild(label);
 	}
-	std::string labels[4] = {"1V/oct", "Gate", "Velocity", "Aftertouch"};
+	std::string labels[6] = {"1V/oct", "Gate", "On Vel", "Off Vel", "Pressure", "Y axis"};
 
 	yPos += labelHeight + margin * 2;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 6; i++) {
 		Label *label = new Label();
 		label->box.pos = Vec(margin, yPos);
 		label->text = labels[i];
@@ -404,13 +404,13 @@ QuadMidiToCVWidget::QuadMidiToCVWidget() {
 		addOutput(createOutput<PJ3410Port>(Vec(3 * (40), yPos - 5), module, i * 4 + 1));
 		addOutput(createOutput<PJ3410Port>(Vec(4 * (40), yPos - 5), module, i * 4 + 2));
 		addOutput(createOutput<PJ3410Port>(Vec(5 * (40), yPos - 5), module, i * 4 + 3));
-		yPos += 40;
+		yPos += 35;
 	}
 
 
 }
 
-void QuadMidiToCVWidget::step() {
+void SeaboardWidget::step() {
 
 	ModuleWidget::step();
 }

@@ -10,7 +10,7 @@ using namespace rack;
 // module widgets
 ////////////////////
 
-struct QuadMidiToCVWidget : ModuleWidget {
-	QuadMidiToCVWidget();
+struct SeaboardWidget : ModuleWidget {
+	SeaboardWidget();
 	void step() override;
 };
