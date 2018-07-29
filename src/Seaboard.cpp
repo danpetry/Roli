@@ -26,9 +26,9 @@ struct SeaboardInterface : MidiIO, Module {
 		PITCH_OUTPUT = 0, // Pitch bend is output as part of 1V/oct output TODO - is this the best way?
 		GATE_OUTPUT = 4,
 		ON_VELOCITY_OUTPUT = 8,
-		OFF_VELOCITY_OUTPUT = 8,
-		PRESSURE_OUTPUT = 12,
-		Y_OUTPUT = 16,
+		OFF_VELOCITY_OUTPUT = 12,
+		PRESSURE_OUTPUT = 16,
+		Y_OUTPUT = 20,
 		NUM_OUTPUTS = 24 // 4 channels x 6 outputs TODO - expand polyphony from 4 to 8
 	};
 	enum LightIds {
@@ -142,6 +142,12 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 	int data1 = msg[1];
 	int data2 = msg[2];
 	bool gate;
+	
+	printf("Chan: %3d  |  ", channel);
+	printf("Stat: %3d  |  ", status);
+	printf("Data1: %3d  |  ", data1);
+	printf("Data2: %3d  |  ", data2);
+	printf("Gate: %3d\n", gate);
 
 	// Filter channels
 	if (this->channel >= 0 && this->channel != channel)
@@ -161,11 +167,9 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 				gate = false;
 			}
 			break;
-		case 0xa: // channel aftertouch
+		case 0xd: // channel aftertouch
 			for (int i = 0; i < 4; i++) {
-				if (activeKeys[i].pitch == data1) {
-					activeKeys[i].pressure = data2;
-				}
+				activeKeys[i].pressure = data1;
 			}
 			return;
 		case 0xb: // cc
@@ -178,6 +182,12 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 						open.push_back(i);
 					}
 				}
+			}
+			if (data1 == 0x4a) { //y axis, cc 74
+				for (int i = 0; i < 4; i++) {
+					activeKeys[i].yAxis = data2;
+				}
+
 			}
 			return;
 		default:
