@@ -12,6 +12,7 @@ struct MidiKey {
 	int offVel = 0; //note off velocity
 	int yAxis = 0; // y axis - up and down the key
 	bool gate = false;
+	int channel = 0;
 };
 
 struct SeaboardInterface : MidiIO, Module {
@@ -93,6 +94,7 @@ void SeaboardInterface::resetMidi() {
 		activeKeys[i].offVel = 0;
 		activeKeys[i].pressure = 0;
 		activeKeys[i].yAxis = 0;
+		activeKeys[i].channel = 0;
 	}
 
 	open.clear();
@@ -169,7 +171,7 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 			break;
 		case 0xd: // channel aftertouch
 			for (int i = 0; i < 4; i++) {
-				activeKeys[i].pressure = data1;
+				if (activeKeys[i].channel == channel) activeKeys[i].pressure = data1;
 			}
 			return;
 		case 0xb: // cc
@@ -185,7 +187,7 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 			}
 			if (data1 == 0x4a) { //y axis, cc 74
 				for (int i = 0; i < 4; i++) {
-					activeKeys[i].yAxis = data2;
+					if (activeKeys[i].channel == channel) activeKeys[i].yAxis = data2;
 				}
 
 			}
@@ -194,15 +196,18 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 			return;
 	}
 
+	// All the stuff after this is only handled if it's a note on or off command.
+
 	if (pedal && !gate) {
 		return;
 	}
 
+	// If it's a note off command for this channel
 	if (!gate) {
 		for (int i = 0; i < 4; i++) {
-			if (activeKeys[i].pitch == data1) {
+			if (activeKeys[i].channel == channel) {
 				activeKeys[i].gate = false;
-				activeKeys[i].onVel = data2; //TODO - include offVel - atm it should just be stuck at 0
+				activeKeys[i].offVel = data2;
 				if (std::find(open.begin(), open.end(), i) != open.end()) {
 					open.remove(i);
 				}
@@ -244,7 +249,7 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 	open.pop_front();
 
 	for (int i = 0; i < 4; i++) {
-		if (activeKeys[i].pitch == data1 && activeKeys[i].gate) {
+		if (activeKeys[i].channel == channel && activeKeys[i].gate) {
 			activeKeys[i].onVel = data2;
 			if (std::find(open.begin(), open.end(), i) != open.end())
 				open.remove(i);
@@ -257,6 +262,7 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 	activeKeys[next].gate = true;
 	activeKeys[next].pitch = data1;
 	activeKeys[next].onVel = data2;
+	activeKeys[next].channel = channel;
 }
 
 int SeaboardInterface::getMode() const {
