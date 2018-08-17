@@ -7,6 +7,7 @@
 
 struct MidiKey {
 	int pitch = 60;
+	int pitchBend = 8192;
 	int pressure = 0; // channel pressure
 	int onVel = 0; // note on velocity
 	int offVel = 0; //note off velocity
@@ -122,7 +123,8 @@ void SeaboardInterface::step() {
 
 	for (int i = 0; i < 4; i++) { //TODO - expand polyphony from 4 to 8
 		outputs[GATE_OUTPUT + i].value = activeKeys[i].gate ? 10.0 : 0;
-		outputs[PITCH_OUTPUT + i].value = (activeKeys[i].pitch - 60) / 12.0;
+		//Pitchbend centre is 8192 (0x2000) and a semitone is 85. 
+		outputs[PITCH_OUTPUT + i].value = ((float)(activeKeys[i].pitch - 60) + ((activeKeys[i].pitchBend - 8192) / 85.0)) / 12.0;
 		outputs[ON_VELOCITY_OUTPUT + i].value = activeKeys[i].onVel / 127.0 * 10.0;
 		outputs[OFF_VELOCITY_OUTPUT + i].value = activeKeys[i].offVel / 127.0 * 10.0;
 		outputs[PRESSURE_OUTPUT + i].value = activeKeys[i].pressure / 127.0 * 10.0;
@@ -143,13 +145,16 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 	int status = (msg[0] >> 4) & 0xf;
 	int data1 = msg[1];
 	int data2 = msg[2];
+	static int minBend = 30000;
+	static int maxBend = 0;
+	static int firstBend = 0;
 	bool gate;
 	
-	printf("Chan: %3d  |  ", channel);
-	printf("Stat: %3d  |  ", status);
-	printf("Data1: %3d  |  ", data1);
-	printf("Data2: %3d  |  ", data2);
-	printf("Gate: %3d\n", gate);
+//	printf("Chan: %3d  |  ", channel);
+//	printf("Stat: %3d  |  ", status);
+//	printf("Data1: %3d  |  ", data1);
+//	printf("Data2: %3d  |  ", data2);
+//	printf("Gate: %3d\n", gate);
 
 	// Filter channels
 	if (this->channel >= 0 && this->channel != channel)
@@ -192,6 +197,17 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 
 			}
 			return;
+		case 0xe: //pitch bend
+			for (int i = 0; i < 4; i++) {
+				if (activeKeys[i].channel == channel){
+					activeKeys[i].pitchBend = (data2 << 7) | data1;
+					if (activeKeys[i].pitchBend < minBend) minBend = activeKeys[i].pitchBend; 
+					if (activeKeys[i].pitchBend > maxBend) maxBend = activeKeys[i].pitchBend; 
+					if (firstBend == 0) firstBend = activeKeys[i].pitchBend; 
+					printf("Pitch bend channel %3d | amount %6d | firstBend %6d | minBend %6d | maxBend %6d\n", channel, activeKeys[i].pitchBend, firstBend, minBend, maxBend);
+				}
+			}
+			return;
 		default:
 			return;
 	}
@@ -217,6 +233,7 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 		return;
 	}
 
+	// All the stuff after this is only handled if it's a note on command
 	if (open.empty()) {
 		for (int i = 0; i < 4; i++) {
 			open.push_back(i);
@@ -259,8 +276,10 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 		}
 	}
 
+	// note on command fulfilled
 	activeKeys[next].gate = true;
 	activeKeys[next].pitch = data1;
+	activeKeys[next].pitchBend = 8192;
 	activeKeys[next].onVel = data2;
 	activeKeys[next].channel = channel;
 }
