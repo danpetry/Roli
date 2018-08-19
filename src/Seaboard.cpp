@@ -15,8 +15,10 @@ struct Seaboard : Module {
 	enum OutputIds {
 		ENUMS(CV_OUTPUT, 4),
 		ENUMS(GATE_OUTPUT, 4),
-		ENUMS(VELOCITY_OUTPUT, 4),
-		ENUMS(AFTERTOUCH_OUTPUT, 4),
+		ENUMS(ON_VELOCITY_OUTPUT, 4),
+		ENUMS(OFF_VELOCITY_OUTPUT, 4),
+		ENUMS(PRESSURE_OUTPUT, 4),
+		ENUMS(Y_OUTPUT, 4),
 		NUM_OUTPUTS
 	};
 	enum LightIds {
@@ -36,8 +38,11 @@ struct Seaboard : Module {
 	PolyMode polyMode = RESET_MODE;
 
 	struct NoteData {
-		uint8_t velocity = 0;
-		uint8_t aftertouch = 0;
+		uint8_t on_velocity = 0;
+		uint8_t off_velocity = 0;
+		uint8_t pressure = 0;
+		uint8_t pitch_bend = 8192;
+		uint8_t y_axis = 0;
 	};
 
 	NoteData noteData[128];
@@ -249,10 +254,12 @@ struct Seaboard : Module {
 		for (int i = 0; i < 4; i++) {
 			uint8_t lastNote = notes[i];
 			uint8_t lastGate = (gates[i] || pedalgates[i]);
-			outputs[CV_OUTPUT + i].value = (lastNote - 60) / 12.f;
+			outputs[CV_OUTPUT + i].value = ((float)(lastNote - 60) + ((noteData[lastNote].pitch_bend - 8192) / 85.0)) / 12.f;
 			outputs[GATE_OUTPUT + i].value = lastGate ? 10.f : 0.f;
-			outputs[VELOCITY_OUTPUT + i].value = rescale(noteData[lastNote].velocity, 0, 127, 0.f, 10.f);
-			outputs[AFTERTOUCH_OUTPUT + i].value = rescale(noteData[lastNote].aftertouch, 0, 127, 0.f, 10.f);
+			outputs[ON_VELOCITY_OUTPUT + i].value = rescale(noteData[lastNote].on_velocity, 0, 127, 0.f, 10.f);
+			outputs[OFF_VELOCITY_OUTPUT + i].value = rescale(noteData[lastNote].off_velocity, 0, 127, 0.f, 10.f);
+			outputs[PRESSURE_OUTPUT + i].value = rescale(noteData[lastNote].pressure, 0, 127, 0.f, 10.f);
+			outputs[Y_OUTPUT + i].value = rescale(noteData[lastNote].y_axis, 0, 127, 0.f, 10.f);
 		}
 	}
 
@@ -264,25 +271,30 @@ struct Seaboard : Module {
 		switch (msg.status()) {
 			// note off
 			case 0x8: {
+				noteData[msg.note()].off_velocity = msg.value();
 				releaseNote(msg.note());
 			} break;
 			// note on
 			case 0x9: {
 				if (msg.value() > 0) {
-					noteData[msg.note()].velocity = msg.value();
+					noteData[msg.note()].on_velocity = msg.value();
 					pressNote(msg.note());
 				}
 				else {
 					releaseNote(msg.note());
 				}
 			} break;
-			// channel aftertouch
-			case 0xa: {
-				noteData[msg.note()].aftertouch = msg.value();
-			} break;
 			// cc
 			case 0xb: {
 				processCC(msg);
+			} break;
+			// channel pressure
+			case 0xd: {
+				noteData[msg.note()].pressure = msg.value();
+			} break;
+			// pitch bend
+			case 0xe: {
+				noteData[msg.note()].pitch_bend = (msg.data2 << 7) | msg.data1;
 			} break;
 			default: break;
 		}
@@ -296,6 +308,10 @@ struct Seaboard : Module {
 					pressPedal();
 				else
 					releasePedal();
+			} break;
+			// y axis
+			case 0x4a: {
+				noteData[msg.note()].y_axis = msg.value();
 			} break;
 			default: break;
 		}
@@ -314,8 +330,11 @@ struct SeaboardWidget : ModuleWidget {
 
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 60.144478)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 0));
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 60.144478)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 60.144478)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 60.144478)), Port::OUTPUT, module, Seaboard::AFTERTOUCH_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 60.144478)), Port::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 60.144478)), Port::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 60.144478)), Port::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 60.144478)), Port::OUTPUT, module, Seaboard::Y_OUTPUT + 0));
+
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 76.144882)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 1));
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 76.144882)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 1));
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 76.144882)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 1));
