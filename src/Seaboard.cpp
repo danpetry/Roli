@@ -1,11 +1,11 @@
-#include "Core.hpp"
+#include "Roli.hpp"
 #include "midi.hpp"
 #include "dsp/digital.hpp"
 
 #include <algorithm>
 
 
-struct QuadMIDIToCVInterface : Module {
+struct Seaboard : Module {
 	enum ParamIds {
 		NUM_PARAMS
 	};
@@ -51,7 +51,7 @@ struct QuadMIDIToCVInterface : Module {
 	int rotateIndex;
 	int stealIndex;
 
-	QuadMIDIToCVInterface() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS), cachedNotes(128) {
+	Seaboard() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS), cachedNotes(128) {
 		onReset();
 	}
 
@@ -303,31 +303,31 @@ struct QuadMIDIToCVInterface : Module {
 };
 
 
-struct QuadMIDIToCVInterfaceWidget : ModuleWidget {
-	QuadMIDIToCVInterfaceWidget(QuadMIDIToCVInterface *module) : ModuleWidget(module) {
-		setPanel(SVG::load(assetGlobal("res/Core/QuadMIDIToCVInterface.svg")));
+struct SeaboardWidget : ModuleWidget {
+	SeaboardWidget(Seaboard *module) : ModuleWidget(module) {
+		setPanel(SVG::load(assetPlugin(plugin, "res/Seaboard.svg")));
 
 		addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 60.144478)), Port::OUTPUT, module, QuadMIDIToCVInterface::CV_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 60.144478)), Port::OUTPUT, module, QuadMIDIToCVInterface::GATE_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 60.144478)), Port::OUTPUT, module, QuadMIDIToCVInterface::VELOCITY_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 60.144478)), Port::OUTPUT, module, QuadMIDIToCVInterface::AFTERTOUCH_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 76.144882)), Port::OUTPUT, module, QuadMIDIToCVInterface::CV_OUTPUT + 1));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 76.144882)), Port::OUTPUT, module, QuadMIDIToCVInterface::GATE_OUTPUT + 1));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 76.144882)), Port::OUTPUT, module, QuadMIDIToCVInterface::VELOCITY_OUTPUT + 1));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 76.144882)), Port::OUTPUT, module, QuadMIDIToCVInterface::AFTERTOUCH_OUTPUT + 1));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 92.143906)), Port::OUTPUT, module, QuadMIDIToCVInterface::CV_OUTPUT + 2));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 92.143906)), Port::OUTPUT, module, QuadMIDIToCVInterface::GATE_OUTPUT + 2));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 92.143906)), Port::OUTPUT, module, QuadMIDIToCVInterface::VELOCITY_OUTPUT + 2));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 92.143906)), Port::OUTPUT, module, QuadMIDIToCVInterface::AFTERTOUCH_OUTPUT + 2));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 108.1443)), Port::OUTPUT, module, QuadMIDIToCVInterface::CV_OUTPUT + 3));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 108.1443)), Port::OUTPUT, module, QuadMIDIToCVInterface::GATE_OUTPUT + 3));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 108.1443)), Port::OUTPUT, module, QuadMIDIToCVInterface::VELOCITY_OUTPUT + 3));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 108.1443)), Port::OUTPUT, module, QuadMIDIToCVInterface::AFTERTOUCH_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 60.144478)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 60.144478)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 60.144478)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 60.144478)), Port::OUTPUT, module, Seaboard::AFTERTOUCH_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 76.144882)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 76.144882)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 76.144882)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 76.144882)), Port::OUTPUT, module, Seaboard::AFTERTOUCH_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 92.143906)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 92.143906)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 92.143906)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 92.143906)), Port::OUTPUT, module, Seaboard::AFTERTOUCH_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 108.1443)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 108.1443)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 108.1443)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 108.1443)), Port::OUTPUT, module, Seaboard::AFTERTOUCH_OUTPUT + 3));
 
 		MidiWidget *midiWidget = Widget::create<MidiWidget>(mm2px(Vec(3.4009969, 14.837336)));
 		midiWidget->box.size = mm2px(Vec(44, 28));
@@ -336,11 +336,11 @@ struct QuadMIDIToCVInterfaceWidget : ModuleWidget {
 	}
 
 	void appendContextMenu(Menu *menu) override {
-		QuadMIDIToCVInterface *module = dynamic_cast<QuadMIDIToCVInterface*>(this->module);
+		Seaboard *module = dynamic_cast<Seaboard*>(this->module);
 
 		struct PolyphonyItem : MenuItem {
-			QuadMIDIToCVInterface *module;
-			QuadMIDIToCVInterface::PolyMode polyMode;
+			Seaboard *module;
+			Seaboard::PolyMode polyMode;
 			void onAction(EventAction &e) override {
 				module->polyMode = polyMode;
 				module->onReset();
@@ -350,21 +350,21 @@ struct QuadMIDIToCVInterfaceWidget : ModuleWidget {
 		menu->addChild(MenuEntry::create());
 		menu->addChild(MenuLabel::create("Polyphony mode"));
 
-		auto addPolyphonyItem = [&](QuadMIDIToCVInterface::PolyMode polyMode, std::string name) {
+		auto addPolyphonyItem = [&](Seaboard::PolyMode polyMode, std::string name) {
 			PolyphonyItem *item = MenuItem::create<PolyphonyItem>(name, CHECKMARK(module->polyMode == polyMode));
 			item->module = module;
 			item->polyMode = polyMode;
 			menu->addChild(item);
 		};
 
-		addPolyphonyItem(QuadMIDIToCVInterface::RESET_MODE, "Reset");
-		addPolyphonyItem(QuadMIDIToCVInterface::ROTATE_MODE, "Rotate");
-		addPolyphonyItem(QuadMIDIToCVInterface::REUSE_MODE, "Reuse");
-		addPolyphonyItem(QuadMIDIToCVInterface::REASSIGN_MODE, "Reassign");
-		addPolyphonyItem(QuadMIDIToCVInterface::UNISON_MODE, "Unison");
+		addPolyphonyItem(Seaboard::RESET_MODE, "Reset");
+		addPolyphonyItem(Seaboard::ROTATE_MODE, "Rotate");
+		addPolyphonyItem(Seaboard::REUSE_MODE, "Reuse");
+		addPolyphonyItem(Seaboard::REASSIGN_MODE, "Reassign");
+		addPolyphonyItem(Seaboard::UNISON_MODE, "Unison");
 	}
 };
 
 
-Model *modelQuadMIDIToCVInterface = Model::create<QuadMIDIToCVInterface, QuadMIDIToCVInterfaceWidget>("Core", "QuadMIDIToCVInterface", "MIDI-4", MIDI_TAG, EXTERNAL_TAG, QUAD_TAG);
+Model *modelSeaboard = Model::create<Seaboard, SeaboardWidget>("Roli", "Seaboard", "Seaboard", MIDI_TAG, EXTERNAL_TAG, QUAD_TAG);
 
