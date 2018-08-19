@@ -41,7 +41,7 @@ struct Seaboard : Module {
 		uint8_t on_velocity = 0;
 		uint8_t off_velocity = 0;
 		uint8_t pressure = 0;
-		uint8_t pitch_bend = 8192;
+		uint16_t pitch_bend = 8192;
 		uint8_t y_axis = 0;
 	};
 
@@ -331,22 +331,30 @@ struct SeaboardWidget : ModuleWidget {
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 60.144478)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 0));
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 60.144478)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 0));
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 60.144478)), Port::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 60.144478)), Port::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 60.144478)), Port::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 0));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 60.144478)), Port::OUTPUT, module, Seaboard::Y_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 60.144478)), Port::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(50.293935, 60.144478)), Port::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 0));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(61.893935, 60.144478)), Port::OUTPUT, module, Seaboard::Y_OUTPUT + 0));
 
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 76.144882)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 1));
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 76.144882)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 1));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 76.144882)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 1));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 76.144882)), Port::OUTPUT, module, Seaboard::AFTERTOUCH_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 76.144882)), Port::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 76.144882)), Port::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(50.293935, 76.144882)), Port::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 1));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(61.893935, 76.144882)), Port::OUTPUT, module, Seaboard::Y_OUTPUT + 1));
+
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 92.143906)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 2));
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 92.143906)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 2));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 92.143906)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 2));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 92.143906)), Port::OUTPUT, module, Seaboard::AFTERTOUCH_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 92.143906)), Port::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 92.143906)), Port::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(50.293935, 92.143906)), Port::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 2));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(61.893935, 92.143906)), Port::OUTPUT, module, Seaboard::Y_OUTPUT + 2));
+
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(3.894335, 108.1443)), Port::OUTPUT, module, Seaboard::CV_OUTPUT + 3));
 		addOutput(Port::create<PJ301MPort>(mm2px(Vec(15.494659, 108.1443)), Port::OUTPUT, module, Seaboard::GATE_OUTPUT + 3));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 108.1443)), Port::OUTPUT, module, Seaboard::VELOCITY_OUTPUT + 3));
-		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 108.1443)), Port::OUTPUT, module, Seaboard::AFTERTOUCH_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(27.094986, 108.1443)), Port::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(38.693935, 108.1443)), Port::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(50.293935, 108.1443)), Port::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 3));
+		addOutput(Port::create<PJ301MPort>(mm2px(Vec(61.893935, 108.1443)), Port::OUTPUT, module, Seaboard::Y_OUTPUT + 3));
 
 		MidiWidget *midiWidget = Widget::create<MidiWidget>(mm2px(Vec(3.4009969, 14.837336)));
 		midiWidget->box.size = mm2px(Vec(44, 28));
