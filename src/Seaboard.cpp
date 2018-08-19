@@ -204,7 +204,6 @@ void SeaboardInterface::processMidi(std::vector<unsigned char> msg) {
 					if (activeKeys[i].pitchBend < minBend) minBend = activeKeys[i].pitchBend; 
 					if (activeKeys[i].pitchBend > maxBend) maxBend = activeKeys[i].pitchBend; 
 					if (firstBend == 0) firstBend = activeKeys[i].pitchBend; 
-					printf("Pitch bend channel %3d | amount %6d | firstBend %6d | minBend %6d | maxBend %6d\n", channel, activeKeys[i].pitchBend, firstBend, minBend, maxBend);
 				}
 			}
 			return;
