@@ -1,5 +1,6 @@
+RACK_DIR ?= ../..
 SLUG = Roli
-VERSION = 0.0.1
+VERSION = 0.6.2b
 
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS +=
@@ -18,4 +19,4 @@ SOURCES += $(wildcard src/*.cpp)
 DISTRIBUTABLES += $(wildcard LICENSE*) res
 
 # Include the VCV plugin Makefile framework
-include ../../plugin.mk
+include $(RACK_DIR)/plugin.mk
