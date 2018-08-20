@@ -43,12 +43,13 @@ struct Seaboard : Module {
 		uint8_t pressure = 0;
 		uint16_t pitch_bend = 8192;
 		uint8_t y_axis = 0;
+		uint8_t pitch = 60;
 	};
 
-	NoteData noteData[128];
-	// cachedNotes : UNISON_MODE and REASSIGN_MODE cache all played notes. The other polyModes cache stolen notes (after the 4th one).
-	std::vector<uint8_t> cachedNotes;
-	uint8_t notes[4];
+	NoteData noteData[16]; //one for each channel
+	// cachedNotes : UNISON_MODE and REASSIGN_MODE cache all played channels. The other polyModes cache stolen channels (after the 4th one).
+	std::vector<uint8_t> cachedChannels;
+	uint8_t channels[4];
 	bool gates[4];
 	// gates set to TRUE by pedal and current gate. FALSE by pedal.
 	bool pedalgates[4];
@@ -56,7 +57,7 @@ struct Seaboard : Module {
 	int rotateIndex;
 	int stealIndex;
 
-	Seaboard() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS), cachedNotes(128) {
+	Seaboard() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS), cachedChannels(16) {
 		onReset();
 	}
 
@@ -79,13 +80,13 @@ struct Seaboard : Module {
 
 	void onReset() override {
 		for (int i = 0; i < 4; i++) {
-			notes[i] = 60;
+			channels[i] = 0;
 			gates[i] = false;
 			pedalgates[i] = false;
 		}
 		pedal = false;
 		rotateIndex = -1;
-		cachedNotes.clear();
+		cachedChannels.clear();
 	}
 
 	int getPolyIndex(int nowIndex) {
@@ -103,12 +104,12 @@ struct Seaboard : Module {
 		if (stealIndex > 3)
 			stealIndex = 0;
 		if ((polyMode < REASSIGN_MODE) && (gates[stealIndex]))
-			cachedNotes.push_back(notes[stealIndex]);
+			cachedChannels.push_back(channels[stealIndex]);
 		return stealIndex;
 	}
 
-	void pressNote(uint8_t note) {
-		// Set notes and gates
+	void pressNote(uint8_t channel) {
+		// Set channels and gates
 		switch (polyMode) {
 			case ROTATE_MODE: {
 				rotateIndex = getPolyIndex(rotateIndex);
@@ -117,7 +118,7 @@ struct Seaboard : Module {
 			case REUSE_MODE: {
 				bool reuse = false;
 				for (int i = 0; i < 4; i++) {
-					if (notes[i] == note) {
+					if (channels[i] == channel) {
 						rotateIndex = i;
 						reuse = true;
 						break;
@@ -132,14 +133,14 @@ struct Seaboard : Module {
 			} break;
 
 			case REASSIGN_MODE: {
-				cachedNotes.push_back(note);
+				cachedChannels.push_back(channel);
 				rotateIndex = getPolyIndex(-1);
 			} break;
 
 			case UNISON_MODE: {
-				cachedNotes.push_back(note);
+				cachedChannels.push_back(channel);
 				for (int i = 0; i < 4; i++) {
-					notes[i] = note;
+					channels[i] = channel;
 					gates[i] = true;
 					pedalgates[i] = pedal;
 					// reTrigger[i].trigger(1e-3);
@@ -149,26 +150,26 @@ struct Seaboard : Module {
 
 			default: break;
 		}
-		// Set notes and gates
+		// Set channels and gates
 		// if (gates[rotateIndex] || pedalgates[rotateIndex])
 		// 	reTrigger[rotateIndex].trigger(1e-3);
-		notes[rotateIndex] = note;
+		channels[rotateIndex] = channel;
 		gates[rotateIndex] = true;
 		pedalgates[rotateIndex] = pedal;
 	}
 
-	void releaseNote(uint8_t note) {
-		// Remove the note
-		auto it = std::find(cachedNotes.begin(), cachedNotes.end(), note);
-		if (it != cachedNotes.end())
-			cachedNotes.erase(it);
+	void releaseNote(uint8_t channel) {
+		// Remove the channel
+		auto it = std::find(cachedChannels.begin(), cachedChannels.end(), channel);
+		if (it != cachedChannels.end())
+			cachedChannels.erase(it);
 
 		switch (polyMode) {
 			case REASSIGN_MODE: {
 				for (int i = 0; i < 4; i++) {
-					if (i < (int) cachedNotes.size()) {
+					if (i < (int) cachedChannels.size()) {
 						if (!pedalgates[i])
-							notes[i] = cachedNotes[i];
+							channels[i] = cachedChannels[i];
 						pedalgates[i] = pedal;
 					}
 					else {
@@ -178,10 +179,10 @@ struct Seaboard : Module {
 			} break;
 
 			case UNISON_MODE: {
-				if (!cachedNotes.empty()) {
-					uint8_t backnote = cachedNotes.back();
+				if (!cachedChannels.empty()) {
+					uint8_t backchannel = cachedChannels.back();
 					for (int i = 0; i < 4; i++) {
-						notes[i] = backnote;
+						channels[i] = backchannel;
 						gates[i] = true;
 					}
 				}
@@ -195,13 +196,13 @@ struct Seaboard : Module {
 			// default ROTATE_MODE REUSE_MODE RESET_MODE
 			default: {
 				for (int i = 0; i < 4; i++) {
-					if (notes[i] == note) {
+					if (channels[i] == channel) {
 						if (pedalgates[i]) {
 							gates[i] = false;
 						}
-						else if (!cachedNotes.empty()) {
-							notes[i] = cachedNotes.back();
-							cachedNotes.pop_back();
+						else if (!cachedChannels.empty()) {
+							channels[i] = cachedChannels.back();
+							cachedChannels.pop_back();
 						}
 						else {
 							gates[i] = false;
@@ -221,21 +222,21 @@ struct Seaboard : Module {
 
 	void releasePedal() {
 		pedal = false;
-		// When pedal is off, recover notes for pressed keys (if any) after they were already being "cycled" out by pedal-sustained notes.
+		// When pedal is off, recover channels for pressed keys (if any) after they were already being "cycled" out by pedal-sustained notes.
 		for (int i = 0; i < 4; i++) {
 			pedalgates[i] = false;
-			if (!cachedNotes.empty()) {
+			if (!cachedChannels.empty()) {
 				if (polyMode < REASSIGN_MODE) {
-					notes[i] = cachedNotes.back();
-					cachedNotes.pop_back();
+					channels[i] = cachedChannels.back();
+					cachedChannels.pop_back();
 					gates[i] = true;
 				}
 			}
 		}
 		if (polyMode == REASSIGN_MODE) {
 			for (int i = 0; i < 4; i++) {
-				if (i < (int) cachedNotes.size()) {
-					notes[i] = cachedNotes[i];
+				if (i < (int) cachedChannels.size()) {
+					channels[i] = cachedChannels[i];
 					gates[i] = true;
 				}
 				else {
@@ -252,14 +253,14 @@ struct Seaboard : Module {
 		}
 
 		for (int i = 0; i < 4; i++) {
-			uint8_t lastNote = notes[i];
+			uint8_t lastChannel = channels[i];
 			uint8_t lastGate = (gates[i] || pedalgates[i]);
-			outputs[CV_OUTPUT + i].value = ((float)(lastNote - 60) + ((noteData[lastNote].pitch_bend - 8192) / 85.0)) / 12.f;
+			outputs[CV_OUTPUT + i].value = ((float)(noteData[lastChannel].pitch - 60) + ((noteData[lastChannel].pitch_bend - 8192) / 85.0)) / 12.f;
 			outputs[GATE_OUTPUT + i].value = lastGate ? 10.f : 0.f;
-			outputs[ON_VELOCITY_OUTPUT + i].value = rescale(noteData[lastNote].on_velocity, 0, 127, 0.f, 10.f);
-			outputs[OFF_VELOCITY_OUTPUT + i].value = rescale(noteData[lastNote].off_velocity, 0, 127, 0.f, 10.f);
-			outputs[PRESSURE_OUTPUT + i].value = rescale(noteData[lastNote].pressure, 0, 127, 0.f, 10.f);
-			outputs[Y_OUTPUT + i].value = rescale(noteData[lastNote].y_axis, 0, 127, 0.f, 10.f);
+			outputs[ON_VELOCITY_OUTPUT + i].value = rescale(noteData[lastChannel].on_velocity, 0, 127, 0.f, 10.f);
+			outputs[OFF_VELOCITY_OUTPUT + i].value = rescale(noteData[lastChannel].off_velocity, 0, 127, 0.f, 10.f);
+			outputs[PRESSURE_OUTPUT + i].value = rescale(noteData[lastChannel].pressure, 0, 127, 0.f, 10.f);
+			outputs[Y_OUTPUT + i].value = rescale(noteData[lastChannel].y_axis, 0, 127, 0.f, 10.f);
 		}
 	}
 
@@ -271,17 +272,18 @@ struct Seaboard : Module {
 		switch (msg.status()) {
 			// note off
 			case 0x8: {
-				noteData[msg.note()].off_velocity = msg.value();
-				releaseNote(msg.note());
+				noteData[msg.channel()].off_velocity = msg.value();
+				releaseNote(msg.channel());
 			} break;
 			// note on
 			case 0x9: {
 				if (msg.value() > 0) {
-					noteData[msg.note()].on_velocity = msg.value();
-					pressNote(msg.note());
+					noteData[msg.channel()].pitch = msg.note();
+					noteData[msg.channel()].on_velocity = msg.value();
+					pressNote(msg.channel());
 				}
 				else {
-					releaseNote(msg.note());
+					releaseNote(msg.channel());
 				}
 			} break;
 			// cc
@@ -290,11 +292,11 @@ struct Seaboard : Module {
 			} break;
 			// channel pressure
 			case 0xd: {
-				noteData[msg.note()].pressure = msg.value();
+				noteData[msg.channel()].pressure = msg.note();
 			} break;
 			// pitch bend
 			case 0xe: {
-				noteData[msg.note()].pitch_bend = (msg.data2 << 7) | msg.data1;
+				noteData[msg.channel()].pitch_bend = (msg.data2 << 7) | msg.data1;
 			} break;
 			default: break;
 		}
@@ -311,7 +313,7 @@ struct Seaboard : Module {
 			} break;
 			// y axis
 			case 0x4a: {
-				noteData[msg.note()].y_axis = msg.value();
+				noteData[msg.channel()].y_axis = msg.value();
 			} break;
 			default: break;
 		}
