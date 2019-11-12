@@ -1,0 +1,23 @@
+{
+  "slug": "Roli",
+  "name": "Roli",
+  "version": "1.0.0",
+  "license": "proprietary",
+  "brand": "Roli",
+  "author": "",
+  "authorEmail": "",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "Seaboard",
+      "name": "Seaboard",
+      "description": "",
+      "tags": []
+    }
+  ]
+}

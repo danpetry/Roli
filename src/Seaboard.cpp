@@ -414,5 +414,5 @@ struct SeaboardWidget : ModuleWidget {
 };
 
 
-Model *modelSeaboard = Model::create<Seaboard, SeaboardWidget>("Roli", "Seaboard", "Seaboard", MIDI_TAG, EXTERNAL_TAG, QUAD_TAG);
+Model *modelSeaboard = Model::create<Seaboard, SeaboardWidget>("Seaboard");
 

@@ -1,6 +1,4 @@
 RACK_DIR ?= ../..
-SLUG = Roli
-VERSION = 0.6.2b
 
 # FLAGS will be passed to both the C and C++ compiler
 FLAGS +=
