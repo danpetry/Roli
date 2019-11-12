@@ -322,6 +322,7 @@ struct Seaboard : Module {
 
 struct SeaboardWidget : ModuleWidget {
 	SeaboardWidget(Seaboard *module) {
+        if (module == NULL) return;
 		setModule(module);
 		setPanel(SVG::load(assetPlugin(pluginInstance, "res/Seaboard.svg")));
 
