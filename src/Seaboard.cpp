@@ -1,6 +1,5 @@
 #include "Roli.hpp"
-#include "midi.hpp"
-#include "dsp/digital.hpp"
+#include "plugin.hpp"
 
 #include <algorithm>
 
@@ -25,7 +24,7 @@ struct Seaboard : Module {
 		NUM_LIGHTS
 	};
 
-	MidiInputQueue midiInput;
+    midi::InputQueue midiInput;
 
 	enum PolyMode {
 		ROTATE_MODE,
@@ -63,7 +62,7 @@ struct Seaboard : Module {
 
 	json_t *dataToJson() override {
 		json_t *rootJ = json_object();
-		json_object_set_new(rootJ, "midi", midiInput.dataToJson());
+		json_object_set_new(rootJ, "midi", midiInput.toJson());
 		json_object_set_new(rootJ, "polyMode", json_integer(polyMode));
 		return rootJ;
 	}
@@ -71,7 +70,7 @@ struct Seaboard : Module {
 	void dataFromJson(json_t *rootJ) override {
 		json_t *midiJ = json_object_get(rootJ, "midi");
 		if (midiJ)
-			midiInput.dataFromJson(midiJ);
+			midiInput.fromJson(midiJ);
 
 		json_t *polyModeJ = json_object_get(rootJ, "polyMode");
 		if (polyModeJ)
@@ -247,7 +246,7 @@ struct Seaboard : Module {
 	}
 
 	void step() override {
-		MidiMessage msg;
+		midi::Message msg;
 		while (midiInput.shift(&msg)) {
 			processMessage(msg);
 		}
@@ -264,26 +263,26 @@ struct Seaboard : Module {
 		}
 	}
 
-	void processMessage(MidiMessage msg) {
+	void processMessage(midi::Message msg) {
 		// filter MIDI channel
-		if ((midiInput.channel > -1) && (midiInput.channel != msg.channel()))
+		if ((midiInput.channel > -1) && (midiInput.channel != msg.getChannel()))
 			return;
 
-		switch (msg.status()) {
+		switch (msg.getStatus()) {
 			// note off
 			case 0x8: {
-				noteData[msg.channel()].off_velocity = msg.value();
-				releaseNote(msg.channel());
+				noteData[msg.getChannel()].off_velocity = msg.getValue();
+				releaseNote(msg.getChannel());
 			} break;
 			// note on
 			case 0x9: {
-				if (msg.value() > 0) {
-					noteData[msg.channel()].pitch = msg.note();
-					noteData[msg.channel()].on_velocity = msg.value();
-					pressNote(msg.channel());
+				if (msg.getValue() > 0) {
+					noteData[msg.getChannel()].pitch = msg.getNote();
+					noteData[msg.getChannel()].on_velocity = msg.getValue();
+					pressNote(msg.getChannel());
 				}
 				else {
-					releaseNote(msg.channel());
+					releaseNote(msg.getChannel());
 				}
 			} break;
 			// cc
@@ -292,28 +291,28 @@ struct Seaboard : Module {
 			} break;
 			// channel pressure
 			case 0xd: {
-				noteData[msg.channel()].pressure = msg.note();
+				noteData[msg.getChannel()].pressure = msg.getNote();
 			} break;
 			// pitch bend
 			case 0xe: {
-				noteData[msg.channel()].pitch_bend = (msg.data2 << 7) | msg.data1;
+				noteData[msg.getChannel()].pitch_bend = ((uint16_t) msg.getValue() << 7) | msg.getNote();
 			} break;
 			default: break;
 		}
 	}
 
-	void processCC(MidiMessage msg) {
-		switch (msg.note()) {
+	void processCC(midi::Message msg) {
+		switch (msg.getNote()) {
 			// sustain
 			case 0x40: {
-				if (msg.value() >= 64)
+				if (msg.getValue() >= 64)
 					pressPedal();
 				else
 					releasePedal();
 			} break;
 			// y axis
 			case 0x4a: {
-				noteData[msg.channel()].y_axis = msg.value();
+				noteData[msg.getChannel()].y_axis = msg.getValue();
 			} break;
 			default: break;
 		}
@@ -322,7 +321,8 @@ struct Seaboard : Module {
 
 
 struct SeaboardWidget : ModuleWidget {
-	SeaboardWidget(Seaboard *module) : ModuleWidget(module) {
+	SeaboardWidget(Seaboard *module) {
+		setModule(module);
 		setPanel(SVG::load(assetPlugin(pluginInstance, "res/Seaboard.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
@@ -379,7 +379,7 @@ struct SeaboardWidget : ModuleWidget {
 
 		MidiWidget *midiWidget = createWidget<MidiWidget>(mm2px(Vec(16.00, 1.00)));
 		midiWidget->box.size = mm2px(Vec(44, 28));
-		midiWidget->midiIO = &module->midiInput;
+        midiWidget->setMidiPort(module ? &module->midiInput : NULL);
 		addChild(midiWidget);
 	}
 
@@ -389,7 +389,7 @@ struct SeaboardWidget : ModuleWidget {
 		struct PolyphonyItem : MenuItem {
 			Seaboard *module;
 			Seaboard::PolyMode polyMode;
-			void onAction(EventAction &e) override {
+			void onAction(const event::Action& e) override {
 				module->polyMode = polyMode;
 				module->onReset();
 			}
