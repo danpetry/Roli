@@ -16,11 +16,7 @@ This plugin takes MIDI from the Seaboard Block, and outputs:
 - CV 70 (?) for up and down the notes
 - Pressure
 
-On a per note basis. There are three modes:
-
-Rotate - Rotate through the outputs
-Reset - Playing a 5th note will reset all notes (= gate off) and start with the first
-Reassign - Reassign the note which was held the longest.
+On a per note basis.
 
 # Acknowledgements
 
