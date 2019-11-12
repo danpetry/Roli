@@ -1,9 +1,9 @@
 #include "Roli.hpp"
 
 
-Plugin *plugin;
+Plugin *pluginInstance;
 void init(Plugin *p) {
-	plugin = p;
+	pluginInstance = p;
 
 	p->addModel(modelSeaboard);
 }

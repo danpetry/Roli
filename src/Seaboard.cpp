@@ -323,7 +323,7 @@ struct Seaboard : Module {
 
 struct SeaboardWidget : ModuleWidget {
 	SeaboardWidget(Seaboard *module) : ModuleWidget(module) {
-		setPanel(SVG::load(assetPlugin(plugin, "res/Seaboard.svg")));
+		setPanel(SVG::load(assetPlugin(pluginInstance, "res/Seaboard.svg")));
 
 		addChild(Widget::create<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(Widget::create<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
