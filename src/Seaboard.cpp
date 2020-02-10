@@ -245,7 +245,7 @@ struct Seaboard : Module {
 		}
 	}
 
-	void step() override {
+	void process(const ProcessArgs& args) override {
 		midi::Message msg;
 		while (midiInput.shift(&msg)) {
 			processMessage(msg);

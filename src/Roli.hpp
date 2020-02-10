@@ -1,4 +1,4 @@
-#include "rack0.hpp"
+#include <rack.hpp>
 
 
 using namespace rack;
@@ -42,7 +42,7 @@ struct Grid16MidiWidget : MidiWidget {
 			vSeparators[x]->box.size.y = pos.y - vSeparators[x]->box.pos.y;
 		}
 	}
-	void step() override {
+	void process(const ProcessArgs& args) override {
 		MidiWidget::step();
 		for (int x = 1; x < 4; x++) {
 			vSeparators[x]->box.pos.x = box.size.x / 4 * x;

@@ -43,4 +43,4 @@ Thumbs.db
 build/
 dist/
 plugin.dylib
-.gitignore.swp
+*.swp
