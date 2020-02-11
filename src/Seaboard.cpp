@@ -254,12 +254,12 @@ struct Seaboard : Module {
 		for (int i = 0; i < 4; i++) {
 			uint8_t lastChannel = channels[i];
 			uint8_t lastGate = (gates[i] || pedalgates[i]);
-			outputs[CV_OUTPUT + i].value = ((float)(noteData[lastChannel].pitch - 60) + ((noteData[lastChannel].pitch_bend - 8192) / 85.0)) / 12.f;
-			outputs[GATE_OUTPUT + i].value = lastGate ? 10.f : 0.f;
-			outputs[ON_VELOCITY_OUTPUT + i].value = rescale(noteData[lastChannel].on_velocity, 0, 127, 0.f, 10.f);
-			outputs[OFF_VELOCITY_OUTPUT + i].value = rescale(noteData[lastChannel].off_velocity, 0, 127, 0.f, 10.f);
-			outputs[PRESSURE_OUTPUT + i].value = rescale(noteData[lastChannel].pressure, 0, 127, 0.f, 10.f);
-			outputs[Y_OUTPUT + i].value = rescale(noteData[lastChannel].y_axis, 0, 127, 0.f, 10.f);
+			outputs[CV_OUTPUT + i].setVoltage(((float)(noteData[lastChannel].pitch - 60) + ((noteData[lastChannel].pitch_bend - 8192) / 85.0)) / 12.f);
+			outputs[GATE_OUTPUT + i].setVoltage(lastGate ? 10.f : 0.f);
+			outputs[ON_VELOCITY_OUTPUT + i].setVoltage(rescale(noteData[lastChannel].on_velocity, 0, 127, 0.f, 10.f));
+			outputs[OFF_VELOCITY_OUTPUT + i].setVoltage(rescale(noteData[lastChannel].off_velocity, 0, 127, 0.f, 10.f));
+			outputs[PRESSURE_OUTPUT + i].setVoltage(rescale(noteData[lastChannel].pressure, 0, 127, 0.f, 10.f));
+			outputs[Y_OUTPUT + i].setVoltage(rescale(noteData[lastChannel].y_axis, 0, 127, 0.f, 10.f));
 		}
 	}
 
@@ -323,7 +323,7 @@ struct Seaboard : Module {
 struct SeaboardWidget : ModuleWidget {
 	SeaboardWidget(Seaboard *module) {
 		setModule(module);
-		setPanel(SVG::load(assetPlugin(pluginInstance, "res/Seaboard.svg")));
+		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Seaboard.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -349,33 +349,33 @@ struct SeaboardWidget : ModuleWidget {
 
 
         // Coordinates are in mm from the top left.
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note1_x_pos, gate_y_pos)), PortWidget::OUTPUT, module, Seaboard::GATE_OUTPUT + 0));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note1_x_pos, cv_y_pos)), PortWidget::OUTPUT, module, Seaboard::CV_OUTPUT + 0));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note1_x_pos, on_vel_y_pos)), PortWidget::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 0));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note1_x_pos, off_vel_y_pos)), PortWidget::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 0));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note1_x_pos, press_y_pos)), PortWidget::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 0));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note1_x_pos, yaxis_y_pos)), PortWidget::OUTPUT, module, Seaboard::Y_OUTPUT + 0));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note1_x_pos, gate_y_pos)), module, Seaboard::GATE_OUTPUT + 0));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note1_x_pos, cv_y_pos)), module, Seaboard::CV_OUTPUT + 0));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note1_x_pos, on_vel_y_pos)), module, Seaboard::ON_VELOCITY_OUTPUT + 0));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note1_x_pos, off_vel_y_pos)), module, Seaboard::OFF_VELOCITY_OUTPUT + 0));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note1_x_pos, press_y_pos)), module, Seaboard::PRESSURE_OUTPUT + 0));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note1_x_pos, yaxis_y_pos)), module, Seaboard::Y_OUTPUT + 0));
 
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note2_x_pos, gate_y_pos)), PortWidget::OUTPUT, module, Seaboard::GATE_OUTPUT + 1));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note2_x_pos, cv_y_pos)), PortWidget::OUTPUT, module, Seaboard::CV_OUTPUT + 1));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note2_x_pos, on_vel_y_pos)), PortWidget::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 1));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note2_x_pos, off_vel_y_pos)), PortWidget::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 1));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note2_x_pos, press_y_pos)), PortWidget::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 1));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note2_x_pos, yaxis_y_pos)), PortWidget::OUTPUT, module, Seaboard::Y_OUTPUT + 1));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note2_x_pos, gate_y_pos)), module, Seaboard::GATE_OUTPUT + 1));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note2_x_pos, cv_y_pos)), module, Seaboard::CV_OUTPUT + 1));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note2_x_pos, on_vel_y_pos)), module, Seaboard::ON_VELOCITY_OUTPUT + 1));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note2_x_pos, off_vel_y_pos)), module, Seaboard::OFF_VELOCITY_OUTPUT + 1));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note2_x_pos, press_y_pos)), module, Seaboard::PRESSURE_OUTPUT + 1));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note2_x_pos, yaxis_y_pos)), module, Seaboard::Y_OUTPUT + 1));
 
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note3_x_pos, gate_y_pos)), PortWidget::OUTPUT, module, Seaboard::GATE_OUTPUT + 2));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note3_x_pos, cv_y_pos)), PortWidget::OUTPUT, module, Seaboard::CV_OUTPUT + 2));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note3_x_pos, on_vel_y_pos)), PortWidget::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 2));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note3_x_pos, off_vel_y_pos)), PortWidget::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 2));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note3_x_pos, press_y_pos)), PortWidget::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 2));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note3_x_pos, yaxis_y_pos)), PortWidget::OUTPUT, module, Seaboard::Y_OUTPUT + 2));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note3_x_pos, gate_y_pos)), module, Seaboard::GATE_OUTPUT + 2));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note3_x_pos, cv_y_pos)), module, Seaboard::CV_OUTPUT + 2));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note3_x_pos, on_vel_y_pos)), module, Seaboard::ON_VELOCITY_OUTPUT + 2));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note3_x_pos, off_vel_y_pos)), module, Seaboard::OFF_VELOCITY_OUTPUT + 2));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note3_x_pos, press_y_pos)), module, Seaboard::PRESSURE_OUTPUT + 2));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note3_x_pos, yaxis_y_pos)), module, Seaboard::Y_OUTPUT + 2));
 
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note4_x_pos, gate_y_pos)), PortWidget::OUTPUT, module, Seaboard::GATE_OUTPUT + 3));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note4_x_pos, cv_y_pos)), PortWidget::OUTPUT, module, Seaboard::CV_OUTPUT + 3));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note4_x_pos, on_vel_y_pos)), PortWidget::OUTPUT, module, Seaboard::ON_VELOCITY_OUTPUT + 3));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note4_x_pos, off_vel_y_pos)), PortWidget::OUTPUT, module, Seaboard::OFF_VELOCITY_OUTPUT + 3));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note4_x_pos, press_y_pos)), PortWidget::OUTPUT, module, Seaboard::PRESSURE_OUTPUT + 3));
-		addOutput(createPort<PJ3410Port>(mm2px(Vec(note4_x_pos, yaxis_y_pos)), PortWidget::OUTPUT, module, Seaboard::Y_OUTPUT + 3));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note4_x_pos, gate_y_pos)), module, Seaboard::GATE_OUTPUT + 3));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note4_x_pos, cv_y_pos)), module, Seaboard::CV_OUTPUT + 3));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note4_x_pos, on_vel_y_pos)), module, Seaboard::ON_VELOCITY_OUTPUT + 3));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note4_x_pos, off_vel_y_pos)), module, Seaboard::OFF_VELOCITY_OUTPUT + 3));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note4_x_pos, press_y_pos)), module, Seaboard::PRESSURE_OUTPUT + 3));
+		addOutput(createOutput<PJ3410Port>(mm2px(Vec(note4_x_pos, yaxis_y_pos)), module, Seaboard::Y_OUTPUT + 3));
 
 		MidiWidget *midiWidget = createWidget<MidiWidget>(mm2px(Vec(16.00, 1.00)));
 		midiWidget->box.size = mm2px(Vec(44, 28));
