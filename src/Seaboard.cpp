@@ -56,7 +56,8 @@ struct Seaboard : Module {
 	int rotateIndex;
 	int stealIndex;
 
-	Seaboard() : Module(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS), cachedChannels(16) {
+	Seaboard() : cachedChannels(16) {
+        config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		onReset();
 	}
 
@@ -330,7 +331,7 @@ struct SeaboardWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        const float pj301m_radius = (8.356 / 2);
+        //const float pj301m_radius = (8.356 / 2);
         const float pj3410_radius = (10.357 / 2);
 
         const float row_spacing = 15.739;
