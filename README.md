@@ -18,6 +18,11 @@ This plugin takes MIDI from the Seaboard Block, and outputs:
 
 On a per note basis.
 
+Not implemented:
+- Pedal
+- Different types of note cycling. Currently new notes (channels) take the
+  first empty output column.
+
 # Acknowledgements
 
 The Seaboard Block MIDI module is based on VCV Core's Quad MIDI to CV.

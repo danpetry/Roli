@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++   -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/roliTest.dir/roliTest.cpp.o  -o roliTest /usr/local/lib/libgtest.a 
