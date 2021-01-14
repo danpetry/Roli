@@ -1,3 +1,0 @@
-/Users/production/Sandbox/Rack_v1/Rack/plugins/Roli/test/CMakeFiles/rebuild_cache.dir
-/Users/production/Sandbox/Rack_v1/Rack/plugins/Roli/test/CMakeFiles/edit_cache.dir
-/Users/production/Sandbox/Rack_v1/Rack/plugins/Roli/test/CMakeFiles/roliTest.dir
