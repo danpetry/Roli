@@ -44,3 +44,11 @@ build/
 dist/
 plugin.dylib
 *.swp
+
+
+# Unignore #
+############
+
+!test/gtest-all.o
+!test/gtest_main.o
+test/rolitest*
